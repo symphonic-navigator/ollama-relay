@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using MongoDB.Driver;
 using OllamaRelay.Relay.Data;
@@ -25,6 +26,7 @@ public static class RelayApp
         // No HTTP logging middleware and no body capture anywhere. Request lines stay out of the logs too.
         builder.Logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
         builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Lifetime", LogLevel.Information);
+        builder.Logging.AddFilter("Microsoft.AspNetCore.DataProtection", LogLevel.Error);
         configure?.Invoke(builder);
 
         var options = RelayOptions.FromConfiguration(builder.Configuration);
@@ -39,8 +41,7 @@ public static class RelayApp
             k.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
             k.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(2);
         });
-        if (builder.Configuration["ASPNETCORE_URLS"] is null && builder.Configuration["urls"] is null &&
-            builder.Configuration["URLS"] is null)
+        if (builder.Configuration["urls"] is null && builder.Configuration["http_ports"] is null)
         {
             builder.WebHost.UseUrls("http://0.0.0.0:8080");
         }
@@ -50,6 +51,8 @@ public static class RelayApp
             o.SerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never;
         });
 
+        // Nothing is protected with data protection keys; keep them in memory so a read-only root filesystem works.
+        builder.Services.AddDataProtection().UseEphemeralDataProtectionProvider();
         builder.Services.AddSingleton<MongoStore>();
         builder.Services.AddSingleton<PasswordHasher>();
         builder.Services.AddSingleton<JwtIssuer>();

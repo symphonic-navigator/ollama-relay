@@ -1,0 +1,13 @@
+# ollama-relay node agent next to Ollama in the homelab. Needs no inbound port.
+# Host networking lets the agent reach Ollama on 127.0.0.1:11434, Ollama's default.
+
+services:
+  node:
+    image: ${NODE_IMAGE:-ghcr.io/symphonic-navigator/ollama-relay-node:latest}
+    restart: unless-stopped
+    network_mode: host
+    env_file: .env
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
