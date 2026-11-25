@@ -1,0 +1,25 @@
+# Quadlet unit for the node agent under rootless Podman, run as a systemd user service.
+# Copy to ~/.config/containers/systemd/ and put the variables from .env.example into the EnvironmentFile below.
+# See "Running a node" in README.md.
+
+[Unit]
+Description=ollama-relay node agent
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+Image=ghcr.io/symphonic-navigator/ollama-relay-node:latest
+# Picked up by podman-auto-update.timer.
+AutoUpdate=registry
+# Reaches Ollama on 127.0.0.1:11434 without exposing it; the agent opens no port.
+Network=host
+EnvironmentFile=%h/.config/ollama-relay-node/node.env
+ReadOnly=true
+DropCapability=ALL
+NoNewPrivileges=true
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
