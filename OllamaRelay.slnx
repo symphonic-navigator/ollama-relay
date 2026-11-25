@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/node/">
+    <Project Path="node/OllamaRelay.Node/OllamaRelay.Node.csproj" />
+  </Folder>
+  <Folder Name="/relay/" />
+  <Folder Name="/relay/backend/">
+    <Project Path="relay/backend/OllamaRelay.Relay/OllamaRelay.Relay.csproj" />
+  </Folder>
+  <Folder Name="/shared/">
+    <Project Path="shared/OllamaRelay.Protocol/OllamaRelay.Protocol.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OllamaRelay.IntegrationTests/OllamaRelay.IntegrationTests.csproj" />
+    <Project Path="tests/OllamaRelay.UnitTests/OllamaRelay.UnitTests.csproj" />
+  </Folder>
+</Solution>
