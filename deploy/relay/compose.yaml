@@ -1,0 +1,52 @@
+# ollama-relay on a VPS behind Traefik. Deployable as a Komodo stack.
+# Copy .env.example to .env (or paste it into Komodo's environment) and fill it in.
+
+services:
+  relay:
+    image: ${RELAY_IMAGE:-ghcr.io/symphonic-navigator/ollama-relay:latest}
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      mongo:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    networks: [internal, traefik]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
+      - traefik.http.routers.ollama-relay.rule=Host(`${RELAY_HOST}`)
+      - traefik.http.routers.ollama-relay.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.ollama-relay.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.ollama-relay.loadbalancer.server.port=8080
+
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    command: ["--quiet"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - mongo-data:/data/db
+    # Only on the internal network: no published port, no route to the internet.
+    networks: [internal]
+
+networks:
+  internal:
+    internal: true
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik}
+
+volumes:
+  mongo-data:
