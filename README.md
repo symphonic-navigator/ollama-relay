@@ -56,7 +56,7 @@ relay/Dockerfile  one image: backend plus built frontend
 node/             headless node agent (.NET worker) + Dockerfile
 shared/           wire protocol library used by relay and node
 tests/            unit tests and integration tests (relay + node + fake Ollama + MongoDB)
-deploy/           compose files and .env examples for relay and node
+deploy/           compose files, .env examples and a Podman Quadlet unit for relay and node
 docs/             PROTOCOL.md (relay ⇄ node wire protocol), project-brief.md (original design brief)
 ```
 
@@ -130,6 +130,21 @@ forces a password change at the next login. The action is written to the audit l
    podman run -d --name ollama-relay-node --restart=always \
      --network=host --env-file .env ghcr.io/symphonic-navigator/ollama-relay-node:latest
    ```
+
+**Rootless Podman as a systemd user service (Quadlet):** `deploy/node/ollama-relay-node.container` starts the
+agent at boot and keeps it on the latest image.
+
+```sh
+mkdir -p ~/.config/ollama-relay-node ~/.config/containers/systemd
+cp deploy/node/.env.example ~/.config/ollama-relay-node/node.env   # fill in RELAY_URL and NODE_TOKEN
+chmod 600 ~/.config/ollama-relay-node/node.env
+cp deploy/node/ollama-relay-node.container ~/.config/containers/systemd/
+systemctl --user daemon-reload
+systemctl --user start ollama-relay-node
+sudo loginctl enable-linger "$USER"                     # run without a login session
+systemctl --user enable --now podman-auto-update.timer  # pull new :latest images nightly
+journalctl --user -u ollama-relay-node -f
+```
 
 The node shows up as online within a few seconds and reports its models. Go to **Publish** to give them
 aliases and to **Grants** to hand them out.
