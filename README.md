@@ -227,7 +227,7 @@ propagation, queue timeout, node reconnect, immediate revocation and the no-cont
 
 CI (`.github/workflows/ci.yml`) builds and tests every push and pull request, and publishes multi-arch
 images (`linux/amd64`, `linux/arm64`) to `ghcr.io/symphonic-navigator/ollama-relay` and
-`ghcr.io/symphonic-navigator/ollama-relay-node` from the default branch (`latest`) and from `v*` tags.
+`ghcr.io/symphonic-navigator/ollama-relay-node` from the default branch and from `v*` tags. Both builds also move `:latest`, so `latest` is always the newest build.
 
 The relay ⇄ node wire protocol is specified in [docs/PROTOCOL.md](docs/PROTOCOL.md).
 
